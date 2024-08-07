@@ -1,0 +1,578 @@
+flask import Flask, render_template, flash, request, session,send_file
+from flask import render_template, redirect, url_for, request
+#from wtforms import Form, TextField, TextAreaField, validators, StringField, SubmitField
+from werkzeug.utils import secure_filename
+import datetime
+import mysql.connector
+import sys
+app = Flask(__name__)
+app.config['DEBUG']
+app.config['SECRET_KEY'] = '7d441f27d441f27567d441f2b6176a'
+
+38
+
+@app.route("/")
+def homepage():
+return render_template('index.html')
+
+@app.route("/AdminLogin")
+def AdminLogin():
+alert = 'sdgsdhgdfjh'
+#return render_template('goback.html', data=alert)
+return render_template('AdminLogin.html')
+@app.route("/CompanyLogin")
+def CompanyLogin():
+return render_template('CompanyLogin.html')
+@app.route("/NewCompany")
+def NewCompany():
+return render_template('NewCompany.html')
+@app.route("/UserLogin")
+def UserLogin():
+return render_template('UserLogin.html')
+@app.route("/NewUser")
+def NewUser():
+return render_template('NewUser.html')
+@app.route("/NewInsurance")
+def NewInsurance():
+return render_template('NewInsurance.html')
+@app.route("/AbookInfo")
+def AbookInfo():
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM Booktb ")
+data = cur.fetchall()
+
+39
+return render_template('AbookInfo.html',data=data)
+@app.route("/AdminHome")
+def AdminHome():
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM regtb ")
+data = cur.fetchall()
+return render_template('AdminHome.html',data=data)
+@app.route("/AdminCompanyInfo")
+def AdminCompanyInfo():
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM companytb where Status='waiting' ")
+data = cur.fetchall()
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM companytb where Status !='waiting' ")
+data1 = cur.fetchall()
+return render_template('AdminCompanyInfo.html', data=data, data1=data1)
+@app.route("/AdminInsurInfo")
+def AdminInsurInfo():
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM insurtb ")
+data = cur.fetchall()
+return render_template('AdminInsurInfo.html',data=data )
+@app.route("/AClaimInfo")
+
+40
+
+def AClaimInfo():
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM claimtb ")
+data = cur.fetchall()
+return render_template('AClaimInfo.html',data=data )
+@app.route("/appr")
+def appr():
+cid = request.args.get('cid')
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute(
+"update companytb set Status='Active' where UserName='" + str(cid) + "' ")
+conn.commit()
+conn.close()
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM companytb where Status='waiting' ")
+data = cur.fetchall()
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM companytb where Status!='waiting' ")
+data1 = cur.fetchall()
+return render_template('AdminCompanyInfo.html', data=data, data1=data1 )
+@app.route("/remove")
+def remove():
+cuname = session['cname']
+
+41
+
+did = request.args.get('did')
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("delete from insurtb where Id='"+ did +"' ")
+conn.commit()
+conn.close()
+conn=mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+# cursor = conn.cursor()
+cur = conn.cursor()
+cur.execute("SELECT * FROM insurtb where CompanyNAme ='"+ cuname +"' ")
+data = cur.fetchall()
+return render_template('CompanyInsurInfo.html', data=data )
+@app.route("/UserHome")
+def UserHome():
+user = session['uname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+# cursor = conn.cursor()
+cur = conn.cursor()
+cur.execute("SELECT * FROM regtb where username='" + user + "'")
+data = cur.fetchall()
+return render_template('UserHome.html',data=data)
+@app.route("/CompanyHome")
+def CompanyHome():
+cuname = session['cname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+# cursor = conn.cursor()
+cur = conn.cursor()
+
+42
+
+cur.execute("SELECT * FROM companytb where username='" + cuname + "'")
+data = cur.fetchall()
+return render_template('CompanyHome.html', data=data)
+@app.route("/CBooking")
+def CBooking():
+cuname = session['cname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+# cursor = conn.cursor()
+cur = conn.cursor()
+cur.execute("SELECT * FROM booktb where CompanyName='" + cuname + "'")
+data = cur.fetchall()
+return render_template('CBooking.html', data=data)
+@app.route("/adminlogin", methods=['GET', 'POST'])
+def adminlogin():
+error = None
+if request.method == 'POST':
+if request.form['uname'] == 'admin' or request.form['password'] == 'admin':
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+# cursor = conn.cursor()
+cur = conn.cursor()
+cur.execute("SELECT * FROM regtb ")
+data = cur.fetchall()
+return render_template('AdminHome.html' , data=data)
+else:
+return render_template('index.html', error=error)
+@app.route("/companylogin", methods=['GET', 'POST'])
+def companylogin():
+error = None
+if request.method == 'POST':
+
+43
+
+username = request.form['uname']
+password = request.form['password']
+session['cname'] = request.form['uname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("SELECT * from companytb where username='" + username + "' and
+Password='" + password + "'")
+data = cursor.fetchone()
+if data is None:
+alert = 'Username or Password is wrong'
+return render_template('goback.html', data=alert)
+else:
+print(data[0])
+session['uid'] = data[0]
+status = data[9]
+if( status == 'waiting'):
+alert = 'Waiting For Company Approval'
+return render_template('goback.html', data=alert)
+else:
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+# cursor = conn.cursor()
+cur = conn.cursor()
+cur.execute("SELECT * FROM companytb where username='" + username + "' and
+Password='" + password + "'")
+data = cur.fetchall()
+return render_template('CompanyHome.html', data=data)
+@app.route("/userlogin", methods=['GET', 'POST'])
+def userlogin():
+if request.method == 'POST':
+
+44
+
+username = request.form['uname']
+password = request.form['password']
+session['uname'] = request.form['uname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("SELECT * from regtb where username='" + username + "' and Password='"
++ password + "'")
+data = cursor.fetchone()
+if data is None:
+alert = 'Username or Password is wrong'
+render_template('goback.html', data=alert)
+else:
+print(data[0])
+session['uid'] = data[0]
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+# cursor = conn.cursor()
+cur = conn.cursor()
+cur.execute("SELECT * FROM regtb where username='" + username + "' and
+Password='" + password + "'")
+data = cur.fetchall()
+return render_template('UserHome.html', data=data )
+@app.route("/Search")
+def Search():
+#date = datetime.datetime.now().strftime('%d-%b-%Y')
+#print(date)
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM insurtb ")
+
+45
+
+data = cur.fetchall()
+return render_template('Search.html',data=data)
+@app.route("/dsearch", methods=['GET', 'POST'])
+def dsearch():
+crname = request.form['crname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM insurtb where CropsName like '%" + crname +"%' ")
+data = cur.fetchall()
+return render_template('Search.html',data=data)
+@app.route("/fullInfo")
+def fullInfo():
+did = request.args.get('did')
+session['did'] = did
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM insurtb where id='" + did + "' ")
+data1 = cur.fetchall()
+return render_template('InsureFullInfo.html',data=data1 )
+@app.route("/Book", methods=['GET', 'POST'])
+def Book():
+if request.method == 'POST':
+uname = session['uname']
+did = session['did']
+ctype = request.form['ctype']
+cardno = request.form['cardno']
+cvno = request.form['cvno']
+date = datetime.datetime.now().strftime('%d-%b-%Y')
+
+46
+
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM insurtb where id='" + did + "'")
+data = cursor.fetchone()
+if data:
+insid = data[1]
+coname= data[2]
+insurName = data[4]
+price = data[5]
+camt=data[7]
+else:
+return 'Incorrect username / password !'
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM regtb where UserName='" + uname + "'")
+data = cursor.fetchone()
+if data:
+Mobile = data[4]
+Email= data[3]
+else:
+return 'Incorrect username / password !'
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("SELECT count(*) as count FROM booktb ")
+data = cursor.fetchone()
+if data:
+count = data[0]
+if count == 0:
+
+47
+
+count =1;
+else:
+count+=1
+else:
+return 'Incorrect username / password !'
+print(count)
+Bookingid="BOOKID00" + str(count)
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute(
+"INSERT INTO booktb VALUES ('','" + Bookingid + "','"+ insid +"','"+ coname +"','" +
+insurName + "','" + uname + "','" + Mobile + "','" + Email + "','" + str(price) + "','"+ ctype +"','"+
+cardno +"','"+ cvno +"','"+ date +"','waiting','"+camt+"')")
+conn.commit()
+conn.close()
+# return 'file register successfully'
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM booktb where UserName= '"+ uname +"' ")
+data = cur.fetchall()
+return render_template('UbookInfo.html' , data =data )
+@app.route("/UBookInfo")
+def UBookInfo():
+uname = session['uname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+# cursor = conn.cursor()
+cur = conn.cursor()
+cur.execute("SELECT * FROM booktb where UserName='" + uname +"' ")
+
+48
+
+data = cur.fetchall()
+return render_template('UBookInfo.html', data=data)
+@app.route("/cfullInfo")
+def cfullInfo():
+cid = request.args.get('cid')
+session['cid'] = cid
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM booktb where id='" + cid + "' ")
+data1 = cur.fetchall()
+return render_template('UClaim.html',data=data1 )
+@app.route("/CBook", methods=['GET', 'POST'])
+def CBook():
+if request.method == 'POST':
+uname = session['uname']
+cid =session['cid']
+cinfo = request.form['cinfo']
+file = request.files['file']
+file.save("static/upload/" + file.filename)
+file1 = request.files['file1']
+file1.save("static/upload/" + file1.filename)
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM booktb where id='" + cid + "'")
+data = cursor.fetchone()
+if data:
+coname = data[3]
+insurName = data[4]
+camt=data[14]
+
+49
+
+else:
+return 'Incorrect username / password !'
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM regtb where UserName='" + uname + "'")
+data = cursor.fetchone()
+if data:
+Mobile = data[4]
+Email= data[3]
+else:
+return 'Incorrect username / password !'
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute(
+"INSERT INTO claimtb VALUES ('" + cid + "','"+ uname +"','"+ Mobile +"','" + Email +
+"','" + insurName + "','" + camt + "','" + cinfo + "','" + file.filename + "','"+ file1.filename
++"','waiting','"+coname+"')")
+conn.commit()
+conn.close()
+# return 'file register successfully'
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM claimtb where UserName= '"+ uname +"' ")
+data = cur.fetchall()
+return render_template('UClaimInfo.html' , data =data )
+@app.route("/UClaimInfo")
+def UClaimInfo():
+uname = session['uname']
+
+50
+
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM claimtb where UserName='" + uname + "' ")
+data1 = cur.fetchall()
+return render_template('UClaimInfo.html',data=data1 )
+@app.route("/CInsuranceClaim")
+def CInsuranceClaim():
+cuname = session['cname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM claimtb where CompanyName='" + cuname + "' ")
+data1 = cur.fetchall()
+return render_template('CInsuranceClaim.html',data=data1 )
+@app.route('/download')
+def download():
+id = request.args.get('id')
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM claimtb where Isuranceid = '" + str(id) + "' ")
+data = cursor.fetchone()
+if data:
+filename = "static\\upload\\"+data[8]
+return send_file(filename, as_attachment=True)
+else:
+return 'Incorrect username / password !'
+@app.route("/Aappr")
+def Aappr():
+cid = request.args.get('cid')
+
+51
+
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute(
+"update claimtb set Status='Approved' where Isuranceid='" + str(cid) + "' ")
+conn.commit()
+conn.close()
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM claimtb where Status='waiting' ")
+data = cur.fetchall()
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM claimtb where Status!='waiting' ")
+data1 = cur.fetchall()
+return render_template('CInsuranceClaim.html', data=data, data1=data1 )
+@app.route("/Rappr")
+def Rappr():
+cid = request.args.get('cid')
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute(
+"update claimtb set Status='Reject' where Isuranceid='" + str(cid) + "' ")
+conn.commit()
+conn.close()
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+
+52
+
+cur.execute("SELECT * FROM claimtb where Status='waiting' ")
+data = cur.fetchall()
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM claimtb where Status!='waiting' ")
+data1 = cur.fetchall()
+return render_template('CInsuranceClaim.html', data=data, data1=data1 )
+@app.route("/newuser", methods=['GET', 'POST'])
+def newuser():
+if request.method == 'POST':
+name1 = request.form['name']
+gender1 = request.form['gender']
+Age = request.form['age']
+email = request.form['email']
+pnumber = request.form['phone']
+address = request.form['address']
+uname = request.form['uname']
+password = request.form['psw']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute(
+"INSERT INTO regtb VALUES ('" + name1 + "','" + gender1 + "','" + Age + "','" + email
++ "','" + pnumber + "','" + address + "','" + uname + "','" + password + "')")
+conn.commit()
+conn.close()
+# return 'file register successfully'
+return render_template('UserLogin.html')
+@app.route("/newcompany", methods=['GET', 'POST'])
+def newcompany():
+
+53
+
+if request.method == 'POST':
+name1 = request.form['name']
+regno = request.form['regno']
+phone = request.form['phone']
+phone2 = request.form['phone2']
+email = request.form['email']
+website = request.form['website']
+address = request.form['address']
+uname = request.form['uname']
+password = request.form['psw']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute(
+"INSERT INTO companytb VALUES ('" + name1 + "','" + regno + "','" + phone + "','" +
+phone2 + "','" + email + "','" + website + "','"+address+"','" + uname + "','" + password +
+"','waiting')")
+conn.commit()
+conn.close()
+return render_template('CompanyLogin.html')
+@app.route("/newinsur", methods=['GET', 'POST'])
+def newinsur():
+if request.method == 'POST':
+cname = session['cname']
+id = request.form['id']
+crname = request.form['crname']
+iname = request.form['iname']
+pamt = request.form['pamt']
+vali = request.form['vali']
+camt = request.form['camt']
+info = request.form['info']
+
+54
+
+file = request.files['file']
+file.save("static/upload/" + file.filename)
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cursor = conn.cursor()
+cursor.execute(
+"INSERT INTO insurtb VALUES ('','"+ id +"','" + cname + "','" + crname + "','" + iname
++ "','"+ pamt +"','" + vali + "','" + camt + "','" + info + "','" + file.filename + "')")
+conn.commit()
+conn.close()
+alert = 'New Insurance Info register successfully'
+return render_template('goback.html',data=alert )
+@app.route("/CompanyInsurInfo")
+def CompanyInsurInfo():
+cuname = session['cname']
+conn = mysql.connector.connect(user='root', password='', host='localhost',
+database='1Agriinsurancedb')
+cur = conn.cursor()
+cur.execute("SELECT * FROM insurtb where CompanyName ='"+ cuname +"' ")
+data = cur.fetchall()
+return render_template('CompanyInsurInfo.html',data=data)
+if __name__ == '__main__':
+app.run(debug=True, use_reloader=True)
